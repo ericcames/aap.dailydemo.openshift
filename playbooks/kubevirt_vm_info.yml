@@ -34,7 +34,7 @@
         instancetype:
           name: u1.medium
         preference:
-          name: fedoratest
+          name: fedora
         spec:
           domain:
             devices:
