@@ -1,7 +1,7 @@
 ---
 - name: Openshift stuff
   hosts: localhost
-  gather_facts: true
+  gather_facts: false
   vars:
     ansible_python_interpreter: /usr/bin/python3
 
@@ -15,3 +15,11 @@
     - name: Print out my list
       ansible.builtin.debug:
         var: vm_list
+
+    - name: Get Cluster information
+      register: api_status
+      kubernetes.core.k8s_cluster_info:
+
+    - name: Print out my api_status
+      ansible.builtin.debug:
+        var: api_status
