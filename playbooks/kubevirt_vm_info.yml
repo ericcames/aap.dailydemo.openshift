@@ -1,0 +1,15 @@
+---
+- name: Openshift stuff
+  hosts: localhost
+  gather_facts: true
+
+  tasks:
+
+    - name: Get a list of all VirtualMachines
+      register: vm_list
+      redhat.openshift_virtualization.kubevirt_vm_info:
+        namespace: default
+
+    - name: Print out my list
+      ansible.builtin.debug:
+        var: vm_list
