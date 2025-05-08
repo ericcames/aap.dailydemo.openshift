@@ -1,0 +1,73 @@
+---
+- name: Create virtual machine from disk template
+  redhat.openshift_virtualization.kubevirt_vm:
+    name: "{{ vm_name }}"
+    namespace: "{{ vm_project }}"
+    api_key: "{{ openshift_api_key }}"
+    running: true
+    validate_certs: "{{ validate_certs }}"
+    state: present
+
+    annotations:
+      vm.kubevirt.io/flavor: "{{ os_images_flavor }}"
+      vm.kubevirt.io/os: "{{ os_images_template }}"
+      vm.kubevirt.io/workload: "{{ os_images_workload }}"
+
+    data_volume_templates:
+      - kind: 'DataVolume'
+        metadata:
+          name: "{{ vm_name }}"
+        spec:
+          sourceRef:
+            kind: 'DataSource'
+            name: "{{ os_images_template }}"
+            namespace: "{{ os_images_project }}"
+          storage:
+            resources:
+              requests:
+                storage: "{{ storage_size }}"
+
+    spec:
+      accessCredentials:
+        - sshPublicKey:
+            propagationMethod:
+              noCloud: {}
+            source:
+              secret:
+                secretName: "{{ ssh_key_secret }}"
+      domain:
+        cpu:
+          cores: "{{ cpu_cores }}"
+          sockets: "{{ cpu_sockets }}"
+          threads: "{{ cpu_threads }}"
+        devices:
+          disks:
+            - disk:
+                bus: 'virtio'
+              name: 'rootdisk'
+            - disk:
+                bus: 'virtio'
+              name: 'cloudinitdisk'
+          interfaces:
+            - masquerade: {}
+              model: 'virtio'
+              name: "{{ network_interface1_name }}"
+            - bridge: {}
+              model: 'virtio'
+              name: "{{ network_interface2_name }}"
+        memory:
+          guest: "{{ memory_size }}"
+      networks:
+        - name: "{{ network_interface1_name }}"
+          pod: {}
+        - name: "{{ network_interface2_name }}"
+          multus:
+            networkName: "{{ network_bridge_name }}"
+      terminationGracePeriodSeconds: 180
+      volumes:
+        - dataVolume:
+            name: "{{ vm_name }}"
+          name: 'rootdisk'
+        - cloudInitNoCloud:
+            userData: "#cloud-config\nuser: cloud-user\npassword: {{ cloud_init_password }}\nchpasswd: { expire: False }"
+          name: 'cloudinitdisk'
