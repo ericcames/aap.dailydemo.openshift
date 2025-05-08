@@ -1,0 +1,6 @@
+---
+
+- name: OpenShift virtual machine provisioning
+  hosts: localhost
+  roles:
+    - role: create-vm
